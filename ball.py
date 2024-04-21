@@ -6,6 +6,9 @@ import argparse
 import cv2
 import imutils
 import time
+from util import get_limits
+
+yellow = [0, 255, 255]
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -17,8 +20,7 @@ args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space
-greenLower = (29, 86, 6)
-greenUpper = (64, 255, 255)
+greenLower, greenUpper = get_limits(color = yellow)
 
 # initialize the list of tracked points, the frame counter,
 # and the coordinate deltas
@@ -83,7 +85,7 @@ while True:
 		center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 		
 		# only proceed if the radius meets a minimum size
-		if radius > 10:
+		if radius > 20:
 			# draw the circle and centroid on the frame,
 			# then update the list of tracked points
 			cv2.circle(frame, (int(x), int(y)), int(radius),
@@ -110,12 +112,12 @@ while True:
 			
 			# ensure there is significant movement in the
 			# x-direction
-			if np.abs(dX) > 20:
+			if np.abs(dX) > 40:
 				dirX = "East" if np.sign(dX) == 1 else "West"
 				
 			# ensure there is significant movement in the
 			# y-direction
-			if np.abs(dY) > 20:
+			if np.abs(dY) > 40:
 				dirY = "North" if np.sign(dY) == 1 else "South"
 				
 			# handle when both directions are non-empty
