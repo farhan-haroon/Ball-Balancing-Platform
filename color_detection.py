@@ -5,29 +5,9 @@ import numpy as np
 
 yellow = [0, 255, 255] # yellow in BGR colorspace
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("/dev/video2")
 
-# lowerLimit, upperLimit = get_limits(color = yellow)
-
-# print(upperLimit.shape)
-# print(lowerLimit.shape)
-
-lowerLimit = np.ndarray(shape=(3,))
-upperLimit = np.ndarray(shape=(3,))
-
-# lowerLimit = [25, 100, 100]
-# upperLimit = [35, 255, 255]
-
-print(type(lowerLimit))
-print(type(upperLimit))
-
-lowerLimit[0], lowerLimit[1], lowerLimit[2] = 25, 100, 200
-upperLimit[0], upperLimit[1], upperLimit[2] = 35, 255, 255
-
-print(lowerLimit[0])
-
-print("Lower Limit =", lowerLimit)
-print("Upper Limit =", upperLimit)
+lowerLimit, upperLimit = get_limits(color = yellow)
 
 while True:
 
@@ -47,6 +27,7 @@ while True:
         frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
         print(x1, y1, x2, y2)
 
+    cv2.imshow('mask', mask)
     cv2.imshow('frame', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
