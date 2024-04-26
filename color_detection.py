@@ -1,7 +1,17 @@
 import cv2
 from PIL import Image
-from util import get_limits
 import numpy as np
+
+def get_limits(color):
+
+    c = np.uint8([[color]])
+    hsvC = cv2.cvtColor(c, cv2.COLOR_BGR2HSV)
+    lowerLimit = hsvC[0][0][0] - 10, 100, 100
+    upperLimit = hsvC[0][0][0] + 10, 255, 255
+    lowerLimit = np.array(lowerLimit, dtype = np.uint8)
+    upperLimit = np.array(upperLimit, dtype = np.uint8)
+
+    return lowerLimit, upperLimit
 
 yellow = [0, 255, 255] # yellow in BGR colorspace
 cap = cv2.VideoCapture("/dev/video2")
@@ -15,6 +25,7 @@ def translate(value, leftMin, leftMax, rightMin, rightMax):
     valueScaled = float(value - leftMin) / float(leftSpan)
 
     return rightMin + (valueScaled * rightSpan)
+
 
 while True:
 
