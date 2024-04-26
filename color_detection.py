@@ -7,6 +7,15 @@ yellow = [0, 255, 255] # yellow in BGR colorspace
 cap = cv2.VideoCapture("/dev/video2")
 lowerLimit, upperLimit = get_limits(color = yellow)
 
+def translate(value, leftMin, leftMax, rightMin, rightMax):
+
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+
+    valueScaled = float(value - leftMin) / float(leftSpan)
+
+    return rightMin + (valueScaled * rightSpan)
+
 while True:
 
     ret, frame = cap.read()
@@ -18,7 +27,11 @@ while True:
     if bbox is not None:
         x1, y1, x2, y2 = bbox
         frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
-        print(x1, y1, x2, y2)
+        
+        x = translate(((x1 + x2) / 2), 0, 640, -20, 20)
+        y = translate(((y1 + y2) / 2), 0, 480, -20, 20)
+
+        print (x, y)
 
     cv2.imshow('mask', mask)
     cv2.imshow('frame', frame)

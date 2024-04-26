@@ -1,76 +1,43 @@
-#!/usr/bin/env python3
-
-import numpy as np
 import cv2
 from PIL import Image
-import rospy
-from geometry_msgs.msg import PoseStamped
+from util import get_limits
+import numpy as np
 
-class ball:
+yellow = [0, 255, 255] # yellow in BGR colorspace
+cap = cv2.VideoCapture("/dev/video2")
+lowerLimit, upperLimit = get_limits(color = yellow)
 
-    def __init__(self):
+def translate(value, leftMin, leftMax, rightMin, rightMax):
 
-        rospy.init_node('ball_tracker', anonymous = True)
-        self.pub = rospy.Publisher('/ball_pose/2D', PoseStamped, queue_size = 10)
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
 
+    valueScaled = float(value - leftMin) / float(leftSpan)
 
-    def translate(self, value, leftMin, leftMax, rightMin, rightMax):
+    return rightMin + (valueScaled * rightSpan)
 
-        leftSpan = leftMax - leftMin
-        rightSpan = rightMax - rightMin
-        valueScaled = float(value - leftMin) / float(leftSpan)
+while True:
 
-        return rightMin + (valueScaled * rightSpan)
+    ret, frame = cap.read()
+    hsvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsvImage, lowerLimit, upperLimit)
+    mask_ = Image.fromarray(mask)
+    bbox = mask_.getbbox()
 
+    if bbox is not None:
+        x1, y1, x2, y2 = bbox
+        frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
+        
+        x = translate(((x1 + x2) / 2), 0, 640, -20, 20)
+        y = translate(((y1 + y2) / 2), 0, 480, -20, 20)
 
-    def get_location(self):
+        print (x, y)
 
-        position = PoseStamped()
+    cv2.imshow('mask', mask)
+    cv2.imshow('frame', frame)
 
-        yellow = [0, 255, 255] # define the color to be tracked in BGR colorspace
+    if cv2.waitKey(1) & 0xFF == ord(' '):
+        break
 
-        c = np.uint8([[yellow]])
-        hsvC = cv2.cvtColor(c, cv2.COLOR_BGR2HSV)
-        lowerLimit = hsvC[0][0][0] - 10, 100, 100
-        upperLimit = hsvC[0][0][0] + 10, 255, 255
-        lowerLimit = np.array(lowerLimit, dtype = np.uint8)
-        upperLimit = np.array(upperLimit, dtype = np.uint8)
-
-        cap = cv2.VideoCapture(0)
-
-        while True:
-
-            ret, frame = cap.read()
-
-            hsvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            mask = cv2.inRange(hsvImage, lowerLimit, upperLimit)
-            mask_ = Image.fromarray(mask)
-            bbox = mask_.getbbox()
-
-            if bbox is not None:
-
-                x1, y1, x2, y2 = bbox
-                frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
-
-                position.header.stamp = rospy.Time.now()
-                position.header.frame_id = "world"
-
-                position.pose.position.x = self.translate(x1, 0, 640, -15, 15)
-                position.pose.position.y = self.translate(y1, 0, 480, -15, 15)
-
-                self.pub.publish(position)
-
-            cv2.imshow('mask', mask)
-            cv2.imshow('frame', frame)
-
-            if cv2.waitKey(1) & 0xFF == ord(' '):
-                
-                break
-            
-            cap.release()
-            cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-
-    obj = ball()
-    obj.get_location()
+cap.release()
+cv2.destroyAllWindows()
