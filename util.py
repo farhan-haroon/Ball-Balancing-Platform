@@ -13,3 +13,6 @@ def get_limits(color):
     upperLimit = np.array(upperLimit, dtype = np.uint8)
 
     return lowerLimit, upperLimit
+
+yellow = [0, 255, 255]
+get_limits(yellow)
