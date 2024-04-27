@@ -46,6 +46,19 @@ class ball:
         while not rospy.is_shutdown():
 
             ret, frame = cap.read()
+
+            # Crop the center portion of the frame to achieve a 1:1 aspect ratio
+            height, width, _ = frame.shape
+            min_dim = min(height, width)
+            start_x = (width - min_dim) // 2
+            start_y = (height - min_dim) // 2
+            end_x = start_x + min_dim
+            end_y = start_y + min_dim
+            frame = frame[start_y:end_y, start_x:end_x]
+
+            # Resize the cropped frame to 640x640
+            frame = cv2.resize(frame, (640, 640))
+
             hsvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             mask = cv2.inRange(hsvImage, lowerLimit, upperLimit)
             mask_ = Image.fromarray(mask)
@@ -56,8 +69,8 @@ class ball:
                 x1, y1, x2, y2 = bbox
                 frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
         
-                x = self.translate(((x1 + x2) / 2), 0, 640, -20, 20)
-                y = self.translate(((y1 + y2) / 2), 0, 480, -20, 20)
+                x = self.translate(((x1 + x2) / 2), 0, 640, -17.5, 17.5)
+                y = self.translate(((y1 + y2) / 2), 0, 640, -17.5, 17.5)
 
                 pose.header.stamp = rospy.Time.now()
                 pose.header.frame_id = "world"
